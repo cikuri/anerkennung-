@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Für Dich</title>
+    <title>anerkennung</title>
     <style>
         body, html {
             margin: 0; padding: 0;
@@ -21,13 +21,14 @@
             z-index: 1;
             overflow: hidden;
             pointer-events: none;
+            transition: opacity 1.33s ease-in-out; /* ИСЧЕЗНОВЕНИЕ ЗА 1.33С */
         }
 
         .falling-text {
             position: absolute;
             color: #800020;
             font-size: 12px;
-            opacity: 0.27; /* ЯРКОСТЬ МАТРИЦЫ */
+            opacity: 0.27; 
             user-select: none;
             white-space: nowrap;
         }
@@ -45,7 +46,6 @@
             cursor: pointer;
             z-index: 100;
             border-radius: 40px;
-            transition: 0.3s;
         }
 
         #heart-container {
@@ -71,6 +71,7 @@
             white-space: nowrap;
             opacity: 0;
             transition: opacity 2s ease;
+            color: #800020;
         }
 
         #signature {
@@ -84,7 +85,6 @@
             transition: opacity 1s;
         }
 
-        /* АНИМАЦИЯ БИЕНИЯ */
         @keyframes heartBeat {
             0% { transform: scale(1); }
             14% { transform: scale(1.1); }
@@ -97,14 +97,13 @@
             animation: heartBeat 0.8s infinite !important;
         }
 
-        /* Твои настройки мерцания */
-        @keyframes blink-0 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
-        @keyframes blink-1 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
-        @keyframes blink-2 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
+        @keyframes blink-top { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
+        @keyframes blink-mid { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
+        @keyframes blink-low { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
 
-        .blink-0 { animation: blink-0 6s infinite ease-in-out; }
-        .blink-1 { animation: blink-1 6s infinite ease-in-out; }
-        .blink-2 { animation: blink-2 6s infinite ease-in-out; }
+        .blink-0 { animation: blink-top 6s infinite ease-in-out; }
+        .blink-1 { animation: blink-mid 6s infinite ease-in-out; }
+        .blink-2 { animation: blink-low 6s infinite ease-in-out; }
     </style>
 </head>
 <body>
@@ -122,38 +121,51 @@
         const btn = document.getElementById('start-btn');
         const signature = document.getElementById('signature');
 
-        const compliments = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste"];
+        const compliments = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste", "dein lächeln ist wunderschön"];
 
-        function spawnBgText() {
+        function spawnBgText(yPos) {
             const span = document.createElement('span');
             span.className = 'falling-text';
             span.innerText = compliments[Math.floor(Math.random() * compliments.length)];
             span.style.left = Math.random() * 100 + 'vw';
-            let top = -50;
+            let top = yPos;
+            span.style.top = top + 'px';
             bgContainer.appendChild(span);
             function move() {
-                top += 1.5;
+                top += 1.2;
                 span.style.top = top + 'px';
-                if (top < window.innerHeight) requestAnimationFrame(move);
-                else span.remove();
+                if (top < window.innerHeight) {
+                    if (bgContainer.style.opacity !== '0') requestAnimationFrame(move);
+                } else {
+                    span.remove();
+                }
             }
             move();
         }
 
-        let bgInterval = setInterval(spawnBgText, 400);
+        // ЗАПОЛНЯЕМ ЭКРАН СРАЗУ
+        for (let i = 0; i < 80; i++) {
+            spawnBgText(Math.random() * window.innerHeight);
+        }
+        
+        let bgInterval = setInterval(() => spawnBgText(-50), 450);
 
         function createHeart() {
             btn.style.display = 'none';
-            clearInterval(bgInterval); // Останавливаем спавн новых, старые долетят
+            
+            // ИСЧЕЗНОВЕНИЕ МАТРИЦЫ
+            clearInterval(bgInterval);
+            bgContainer.style.opacity = '0';
+            setTimeout(() => { bgContainer.innerHTML = ''; }, 1330);
+
             signature.style.opacity = '1';
-
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            const isMobile = window.innerWidth < 600;
-
             canvas.style.display = 'block';
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            const isMobile = window.innerWidth < 600;
 
             const layers = [
                 { count: 140, scale: isMobile ? 9 : 15, opacity: 1 },
@@ -161,63 +173,70 @@
                 { count: 70, scale: isMobile ? 4 : 7, opacity: 0.33 }
             ];
 
-            let allPhrases = [];
+            let allHeartPhrases = [];
             layers.forEach((layer, index) => {
                 for (let i = 0; i < layer.count; i++) {
                     const span = document.createElement('span');
                     span.className = 'heart-phrase';
                     span.innerText = 'ich liebe dich';
-                    span.style.color = '#800020';
                     const t = (i / layer.count) * Math.PI * 2;
                     const x = layer.scale * 16 * Math.pow(Math.sin(t), 3) * 1.1;
                     const y = -layer.scale * (14 * Math.cos(t) - 5.5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
-                    span.style.left = (centerX + x - 35) + 'px';
-                    span.style.top = (centerY + y) + 'px';
+                    span.style.left = (cx + x - 35) + 'px';
+                    span.style.top = (cy + y) + 'px';
                     heartContainer.appendChild(span);
-                    allPhrases.push({el: span, layer: index, targetOpacity: layer.opacity});
-                    setTimeout(() => { span.style.opacity = layer.opacity; }, Math.random() * 2000);
+                    allHeartPhrases.push({el: span, layer: index, opacity: layer.opacity});
+                    setTimeout(() => { span.style.opacity = layer.opacity; }, Math.random() * 2000); 
                 }
             });
 
             setTimeout(() => {
-                allPhrases.forEach(p => {
-                    if (Math.random() > 0.5) p.el.classList.add('blink-' + p.layer);
+                allHeartPhrases.forEach(p => {
+                    if (Math.random() > 0.5) {
+                        p.el.classList.add('blink-' + p.layer);
+                        p.el.style.animationDelay = (Math.random() * 5) + 's';
+                    }
                 });
             }, 3000);
 
-            // ЛОГИКА ИНТЕРАКТИВА
-            let sectors = new Set();
+            let sectorsTouched = new Set();
             let isDrawing = false;
-            let isBeating = false;
+            let beatCount = 0;
 
             function triggerBeat() {
-                if (isBeating) return;
-                isBeating = true;
+                if (heartContainer.classList.contains('beating')) return;
+                beatCount = 0;
                 heartContainer.classList.add('beating');
-
-                // Ровно 10 ударов по 0.8 секунд = 8000мс
-                setTimeout(() => {
-                    heartContainer.classList.remove('beating');
-                    isBeating = false;
-                }, 8000);
+                const onBeat = () => {
+                    beatCount++;
+                    if (beatCount >= 10) {
+                        heartContainer.classList.remove('beating');
+                        heartContainer.removeEventListener('animationiteration', onBeat);
+                    }
+                };
+                heartContainer.addEventListener('animationiteration', onBeat);
             }
 
-            function check(x, y) {
-                const dx = x - centerX, dy = y - centerY;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist > 100 && dist < 300) {
+            function checkTrace(x, y) {
+                const dx = x - cx, dy = y - cy;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance > 80 && distance < 350) {
                     const angle = Math.atan2(dy, dx);
-                    sectors.add(Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 12));
-                    if (sectors.size === 12) { triggerBeat(); sectors.clear(); }
+                    const sector = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 12);
+                    sectorsTouched.add(sector);
+                    if (sectorsTouched.size === 12) {
+                        triggerBeat();
+                        sectorsTouched.clear();
+                    }
                 }
             }
 
-            canvas.addEventListener('mousedown', () => { isDrawing = true; sectors.clear(); });
+            canvas.addEventListener('mousedown', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
             window.addEventListener('mouseup', () => isDrawing = false);
-            canvas.addEventListener('mousemove', (e) => { if(isDrawing) check(e.clientX, e.clientY); });
-            canvas.addEventListener('touchstart', () => { isDrawing = true; sectors.clear(); });
+            canvas.addEventListener('mousemove', (e) => { if(isDrawing) checkTrace(e.clientX, e.clientY); });
+            canvas.addEventListener('touchstart', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
             window.addEventListener('touchend', () => isDrawing = false);
-            canvas.addEventListener('touchmove', (e) => { if(isDrawing) check(e.touches[0].clientX, e.touches[0].clientY); });
+            canvas.addEventListener('touchmove', (e) => { if(isDrawing) checkTrace(e.touches[0].clientX, e.touches[0].clientY); });
         }
 
         btn.addEventListener('click', createHeart);
