@@ -16,27 +16,28 @@
             align-items: center;
         }
 
-        /* Комплименты на фоне */
         #bg-phrases {
             position: absolute; width: 100%; height: 100%;
             z-index: 1;
+            overflow: hidden;
         }
 
+        /* МАТРИЦА СНОВА ЯРКАЯ */
         .falling-text {
             position: absolute;
-            color: #500; /* Темно-красный для фона */
+            color: #800020;
             font-size: 12px;
+            opacity: 0.27; 
+            user-select: none;
             white-space: nowrap;
-            opacity: 0.5;
         }
 
-        /* Кнопка в стиле видео */
         #start-btn {
             position: relative;
             padding: 15px 35px;
-            background-color: #000; /* Черная заливка */
-            border: 2px solid #800020; /* Красный контур */
-            color: #800020; /* Красный текст */
+            background-color: #000;
+            border: 2px solid #800020;
+            color: #800020;
             font-size: 16px;
             font-family: inherit;
             text-transform: uppercase;
@@ -47,36 +48,69 @@
             transition: 0.3s;
         }
 
-        #start-btn:hover {
-            box-shadow: 0 0 20px #800020;
-            color: #a00;
-        }
+        #start-btn:hover { box-shadow: 0 0 20px #800020; background-color: rgba(128, 0, 32, 0.1); }
 
-        /* Сердце */
         #heart-container {
             position: absolute;
             width: 100%; height: 100%;
             z-index: 5;
             pointer-events: none;
+            transform-origin: center;
+        }
+
+        #drawing-canvas {
+            position: absolute;
+            width: 100vw; height: 100vh;
+            z-index: 50;
+            display: none;
+            touch-action: none;
         }
 
         .heart-phrase {
             position: absolute;
             font-size: 9px;
-            color: #800020;
             font-weight: bold;
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 1.5s ease;
+            transition: opacity 2s ease;
         }
 
-        @keyframes beat {
+        #signature {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #800020;
+            font-size: 14px;
+            opacity: 0;
+            z-index: 10;
+            transition: opacity 1s ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes heartBeat {
             0% { transform: scale(1); }
-            50% { transform: scale(1.07); }
-            100% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1); }
         }
 
-        .beating { animation: beat 1.5s infinite ease-in-out; }
+        .beating {
+            animation: heartBeat 0.8s infinite !important;
+        }
+
+        /* Твои настройки мерцания через filter */
+        @keyframes blink-top { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
+        @keyframes blink-mid { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
+        @keyframes blink-low { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
+
+        .blink-0 { animation: blink-top 6s infinite ease-in-out; }
+        .blink-1 { animation: blink-mid 6s infinite ease-in-out; }
+        .blink-2 { animation: blink-low 6s infinite ease-in-out; }
+
+        @media (max-width: 600px) {
+            #signature { font-size: 11px; bottom: 15px; right: 15px; }
+        }
     </style>
 </head>
 <body>
@@ -84,86 +118,141 @@
     <div id="bg-phrases"></div>
     <button id="start-btn">Открыть</button>
     <div id="heart-container"></div>
+    <canvas id="drawing-canvas"></canvas>
+    <div id="signature">insbesondere für Sofia Mjaukowna</div>
 
     <script>
         const bgContainer = document.getElementById('bg-phrases');
         const heartContainer = document.getElementById('heart-container');
+        const canvas = document.getElementById('drawing-canvas');
         const btn = document.getElementById('start-btn');
+        const signature = document.getElementById('signature');
 
         const compliments = [
             "Ich ertrinke in deinen Augen", "Ich mag dich",
             "du bist ein geschenk des schicksals", "du bist die schönste",
-            "dein lächeln ist wunderschön", "deine stimme klingt wie ein engelsgesang"
+            "dein lächeln ist wunderschön", "deine stimme wie ein engelsgesang"
         ];
 
-        // Создание падающих фраз
-        function spawnBgText() {
+        function spawnBgText(initialY = -50) {
             const span = document.createElement('span');
             span.className = 'falling-text';
             span.innerText = compliments[Math.floor(Math.random() * compliments.length)];
-            span.style.left = Math.random() * 90 + 'vw';
-            
-            let top = -50;
-            const speed = Math.random() * 1 + 0.5;
+            const xPos = Math.random() * 100;
+            span.style.left = xPos + 'vw';
+            let top = initialY;
+            const speed = Math.random() * 0.7 + 0.3;
             bgContainer.appendChild(span);
-
             function move() {
                 top += speed;
                 span.style.top = top + 'px';
-                if (top < window.innerHeight) {
-                    requestAnimationFrame(move);
-                } else {
-                    span.remove();
-                }
+                if (top < window.innerHeight) requestAnimationFrame(move);
+                else span.remove();
             }
             move();
         }
 
-        let bgInterval = setInterval(spawnBgText, 700);
+        // Запуск матрицы
+        for (let i = 0; i < 75; i++) spawnBgText(Math.random() * window.innerHeight);
+        let bgInterval = setInterval(() => spawnBgText(-50), 450);
 
-        // Функция создания сердца
         function createHeart() {
-            // Убираем кнопку и фон
             btn.style.display = 'none';
-            clearInterval(bgInterval);
+            // Не убиваем интервал матрицы, просто скрываем контейнер плавно
             bgContainer.style.opacity = '0';
-            bgContainer.style.transition = 'opacity 1s';
+            bgContainer.style.transition = 'opacity 1.5s';
+            signature.style.opacity = '1';
 
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             const isMobile = window.innerWidth < 600;
 
-            // Рисуем два контура (внешний и внутренний)
+            canvas.style.display = 'block';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
             const layers = [
-                { count: 120, scale: isMobile ? 9 : 15 }, // Внешний
-                { count: 80, scale: isMobile ? 6 : 10 }   // Внутренний
+                { count: 140, scale: isMobile ? 9 : 15, opacity: 1 },
+                { count: 100, scale: isMobile ? 6.5 : 11, opacity: 0.66 },
+                { count: 70, scale: isMobile ? 4 : 7, opacity: 0.33 }
             ];
 
-            layers.forEach(layer => {
+            let allHeartPhrases = [];
+            layers.forEach((layer, index) => {
                 for (let i = 0; i < layer.count; i++) {
                     const span = document.createElement('span');
                     span.className = 'heart-phrase';
                     span.innerText = 'ich liebe dich';
-
+                    span.style.color = '#800020';
+                    span.dataset.layerIndex = index;
                     const t = (i / layer.count) * Math.PI * 2;
-                    const x = layer.scale * 16 * Math.pow(Math.sin(t), 3);
-                    const y = -layer.scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
-
-                    span.style.left = (centerX + x - 30) + 'px';
+                    const x = layer.scale * 16 * Math.pow(Math.sin(t), 3) * 1.1;
+                    const y = -layer.scale * (14 * Math.cos(t) - 5.5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                    span.style.left = (centerX + x - 35) + 'px';
                     span.style.top = (centerY + y) + 'px';
-
                     heartContainer.appendChild(span);
-
-                    // Плавное рандомное появление
-                    setTimeout(() => {
-                        span.style.opacity = '1';
-                    }, Math.random() * 2000);
+                    allHeartPhrases.push(span);
+                    setTimeout(() => { span.style.opacity = layer.opacity; }, Math.random() * 2600); 
                 }
             });
 
             setTimeout(() => {
+                allHeartPhrases.forEach(p => {
+                    if (Math.random() > 0.5) {
+                        p.classList.add('blink-' + p.dataset.layerIndex);
+                        p.style.animationDelay = (Math.random() * 4) + 's';
+                    }
+                });
+            }, 3500);
+
+            let isDrawing = false;
+            let sectorsTouched = new Set();
+            const totalSectors = 12;
+            const radiusThreshold = isMobile ? 120 : 200;
+            let currentBeatCount = 0;
+
+            function onBeatEnd() {
+                currentBeatCount++;
+                if (currentBeatCount >= 10) {
+                    heartContainer.classList.remove('beating');
+                    heartContainer.removeEventListener('animationiteration', onBeatEnd);
+                    currentBeatCount = 0;
+                }
+            }
+
+            function triggerBeat() {
+                if (heartContainer.classList.contains('beating')) return;
+                currentBeatCount = 0;
                 heartContainer.classList.add('beating');
-            }, 2000);
+                heartContainer.addEventListener('animationiteration', onBeatEnd);
+            }
+
+            function checkTrace(x, y) {
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+
+                if (distance > radiusThreshold * 0.5 && distance < radiusThreshold * 1.6) {
+                    const angle = Math.atan2(dy, dx);
+                    const sector = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * totalSectors);
+                    sectorsTouched.add(sector);
+
+                    if (sectorsTouched.size === totalSectors) {
+                        triggerBeat();
+                        sectorsTouched.clear();
+                    }
+                }
+            }
+
+            canvas.addEventListener('mousedown', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
+            window.addEventListener('mouseup', () => { isDrawing = false; });
+            canvas.addEventListener('mousemove', (e) => { if(isDrawing) checkTrace(e.clientX, e.clientY); });
+            
+            canvas.addEventListener('touchstart', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
+            window.addEventListener('touchend', () => { isDrawing = false; });
+            canvas.addEventListener('touchmove', (e) => { 
+                if(isDrawing) checkTrace(e.touches[0].clientX, e.touches[0].clientY); 
+            });
         }
 
         btn.addEventListener('click', createHeart);
