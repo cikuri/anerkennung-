@@ -22,6 +22,7 @@
             overflow: hidden;
         }
 
+        /* МАТРИЦА СНОВА ЯРКАЯ */
         .falling-text {
             position: absolute;
             color: #800020;
@@ -86,7 +87,6 @@
             pointer-events: none;
         }
 
-        /* ТИХОЕ БИЕНИЕ (не вылетает за экран) */
         @keyframes heartBeat {
             0% { transform: scale(1); }
             14% { transform: scale(1.1); }
@@ -99,7 +99,7 @@
             animation: heartBeat 0.8s infinite !important;
         }
 
-        /* Мерцание слоев по твоим настройкам */
+        /* Твои настройки мерцания через filter */
         @keyframes blink-top { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
         @keyframes blink-mid { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
         @keyframes blink-low { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
@@ -152,12 +152,13 @@
             move();
         }
 
+        // Запуск матрицы
         for (let i = 0; i < 75; i++) spawnBgText(Math.random() * window.innerHeight);
         let bgInterval = setInterval(() => spawnBgText(-50), 450);
 
         function createHeart() {
             btn.style.display = 'none';
-            clearInterval(bgInterval);
+            // Не убиваем интервал матрицы, просто скрываем контейнер плавно
             bgContainer.style.opacity = '0';
             bgContainer.style.transition = 'opacity 1.5s';
             signature.style.opacity = '1';
@@ -208,6 +209,23 @@
             let sectorsTouched = new Set();
             const totalSectors = 12;
             const radiusThreshold = isMobile ? 120 : 200;
+            let currentBeatCount = 0;
+
+            function onBeatEnd() {
+                currentBeatCount++;
+                if (currentBeatCount >= 10) {
+                    heartContainer.classList.remove('beating');
+                    heartContainer.removeEventListener('animationiteration', onBeatEnd);
+                    currentBeatCount = 0;
+                }
+            }
+
+            function triggerBeat() {
+                if (heartContainer.classList.contains('beating')) return;
+                currentBeatCount = 0;
+                heartContainer.classList.add('beating');
+                heartContainer.addEventListener('animationiteration', onBeatEnd);
+            }
 
             function checkTrace(x, y) {
                 const dx = x - centerX;
@@ -226,29 +244,12 @@
                 }
             }
 
-            function triggerBeat() {
-                if (heartContainer.classList.contains('beating')) return;
-                
-                let count = 0;
-                heartContainer.classList.add('beating');
-                
-                const onBeat = () => {
-                    count++;
-                    if (count >= 10) {
-                        heartContainer.classList.remove('beating');
-                        heartContainer.removeEventListener('animationiteration', onBeat);
-                    }
-                };
-                
-                heartContainer.addEventListener('animationiteration', onBeat);
-            }
-
-            canvas.addEventListener('mousedown', () => { isDrawing = true; sectorsTouched.clear(); });
-            canvas.addEventListener('mouseup', () => { isDrawing = false; sectorsTouched.clear(); });
+            canvas.addEventListener('mousedown', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
+            window.addEventListener('mouseup', () => { isDrawing = false; });
             canvas.addEventListener('mousemove', (e) => { if(isDrawing) checkTrace(e.clientX, e.clientY); });
             
-            canvas.addEventListener('touchstart', () => { isDrawing = true; sectorsTouched.clear(); });
-            canvas.addEventListener('touchend', () => { isDrawing = false; sectorsTouched.clear(); });
+            canvas.addEventListener('touchstart', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
+            window.addEventListener('touchend', () => { isDrawing = false; });
             canvas.addEventListener('touchmove', (e) => { 
                 if(isDrawing) checkTrace(e.touches[0].clientX, e.touches[0].clientY); 
             });
