@@ -68,13 +68,14 @@
             transition: opacity 2s ease;
         }
 
+        /* Оставил медленную скорость для эстетики */
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.33; }
         }
 
         .blinking {
-            animation: blink 3s infinite ease-in-out;
+            animation: blink 6s infinite ease-in-out;
         }
     </style>
 </head>
@@ -94,26 +95,19 @@
             "Ich mag dich",
             "du bist ein geschenk des schicksals", 
             "du bist die schönste",
-            "dein lächeлн ist wunderschön", 
-            "deine stimme wie ein engelsgesang" // Твоя новая фраза
+            "dein lächeln ist wunderschön", 
+            "deine stimme wie ein engelsgesang"
         ];
 
         function spawnBgText(initialY = -50) {
             const span = document.createElement('span');
             span.className = 'falling-text';
             span.innerText = compliments[Math.floor(Math.random() * compliments.length)];
-            
-            // Распределение по всей ширине
             const xPos = Math.random() * 100;
             span.style.left = xPos + 'vw';
-            
-            // Центрируем фразу относительно точки спавна, чтобы она не уходила за правый край
             if (xPos > 50) {
                 span.style.transform = 'translateX(-100%)';
-            } else {
-                span.style.transform = 'translateX(0)';
             }
-            
             let top = initialY;
             const speed = Math.random() * 0.7 + 0.3;
             bgContainer.appendChild(span);
@@ -130,7 +124,6 @@
             move();
         }
 
-        // Мгновенный старт матрицы
         for (let i = 0; i < 75; i++) {
             spawnBgText(Math.random() * window.innerHeight);
         }
@@ -163,7 +156,6 @@
                     span.style.color = '#800020';
 
                     const t = (i / layer.count) * Math.PI * 2;
-                    // Обновленная закругленная формула сердца
                     const x = layer.scale * 16 * Math.pow(Math.sin(t), 3) * 1.1;
                     const y = -layer.scale * (14 * Math.cos(t) - 5.5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
 
@@ -179,12 +171,12 @@
                 }
             });
 
-            // Запуск мерцания случайных слов
             setTimeout(() => {
                 allHeartPhrases.forEach(p => {
+                    // Вернул прежний шанс (примерно 35%)
                     if (Math.random() > 0.65) {
                         p.classList.add('blinking');
-                        p.style.animationDelay = (Math.random() * 3) + 's';
+                        p.style.animationDelay = (Math.random() * 4) + 's';
                     }
                 });
             }, 3000);
