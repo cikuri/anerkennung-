@@ -20,14 +20,14 @@
             position: absolute; width: 100%; height: 100%;
             z-index: 1;
             overflow: hidden;
+            pointer-events: none;
         }
 
-        /* МАТРИЦА СНОВА ЯРКАЯ */
         .falling-text {
             position: absolute;
             color: #800020;
             font-size: 12px;
-            opacity: 0.27; 
+            opacity: 0.27; /* ЯРКОСТЬ МАТРИЦЫ */
             user-select: none;
             white-space: nowrap;
         }
@@ -47,8 +47,6 @@
             border-radius: 40px;
             transition: 0.3s;
         }
-
-        #start-btn:hover { box-shadow: 0 0 20px #800020; background-color: rgba(128, 0, 32, 0.1); }
 
         #heart-container {
             position: absolute;
@@ -83,10 +81,10 @@
             font-size: 14px;
             opacity: 0;
             z-index: 10;
-            transition: opacity 1s ease-in-out;
-            pointer-events: none;
+            transition: opacity 1s;
         }
 
+        /* АНИМАЦИЯ БИЕНИЯ */
         @keyframes heartBeat {
             0% { transform: scale(1); }
             14% { transform: scale(1.1); }
@@ -99,18 +97,14 @@
             animation: heartBeat 0.8s infinite !important;
         }
 
-        /* Твои настройки мерцания через filter */
-        @keyframes blink-top { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
-        @keyframes blink-mid { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
-        @keyframes blink-low { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
+        /* Твои настройки мерцания */
+        @keyframes blink-0 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
+        @keyframes blink-1 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
+        @keyframes blink-2 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
 
-        .blink-0 { animation: blink-top 6s infinite ease-in-out; }
-        .blink-1 { animation: blink-mid 6s infinite ease-in-out; }
-        .blink-2 { animation: blink-low 6s infinite ease-in-out; }
-
-        @media (max-width: 600px) {
-            #signature { font-size: 11px; bottom: 15px; right: 15px; }
-        }
+        .blink-0 { animation: blink-0 6s infinite ease-in-out; }
+        .blink-1 { animation: blink-1 6s infinite ease-in-out; }
+        .blink-2 { animation: blink-2 6s infinite ease-in-out; }
     </style>
 </head>
 <body>
@@ -128,23 +122,17 @@
         const btn = document.getElementById('start-btn');
         const signature = document.getElementById('signature');
 
-        const compliments = [
-            "Ich ertrinke in deinen Augen", "Ich mag dich",
-            "du bist ein geschenk des schicksals", "du bist die schönste",
-            "dein lächeln ist wunderschön", "deine stimme wie ein engelsgesang"
-        ];
+        const compliments = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste"];
 
-        function spawnBgText(initialY = -50) {
+        function spawnBgText() {
             const span = document.createElement('span');
             span.className = 'falling-text';
             span.innerText = compliments[Math.floor(Math.random() * compliments.length)];
-            const xPos = Math.random() * 100;
-            span.style.left = xPos + 'vw';
-            let top = initialY;
-            const speed = Math.random() * 0.7 + 0.3;
+            span.style.left = Math.random() * 100 + 'vw';
+            let top = -50;
             bgContainer.appendChild(span);
             function move() {
-                top += speed;
+                top += 1.5;
                 span.style.top = top + 'px';
                 if (top < window.innerHeight) requestAnimationFrame(move);
                 else span.remove();
@@ -152,15 +140,11 @@
             move();
         }
 
-        // Запуск матрицы
-        for (let i = 0; i < 75; i++) spawnBgText(Math.random() * window.innerHeight);
-        let bgInterval = setInterval(() => spawnBgText(-50), 450);
+        let bgInterval = setInterval(spawnBgText, 400);
 
         function createHeart() {
             btn.style.display = 'none';
-            // Не убиваем интервал матрицы, просто скрываем контейнер плавно
-            bgContainer.style.opacity = '0';
-            bgContainer.style.transition = 'opacity 1.5s';
+            clearInterval(bgInterval); // Останавливаем спавн новых, старые долетят
             signature.style.opacity = '1';
 
             const centerX = window.innerWidth / 2;
@@ -177,82 +161,63 @@
                 { count: 70, scale: isMobile ? 4 : 7, opacity: 0.33 }
             ];
 
-            let allHeartPhrases = [];
+            let allPhrases = [];
             layers.forEach((layer, index) => {
                 for (let i = 0; i < layer.count; i++) {
                     const span = document.createElement('span');
                     span.className = 'heart-phrase';
                     span.innerText = 'ich liebe dich';
                     span.style.color = '#800020';
-                    span.dataset.layerIndex = index;
                     const t = (i / layer.count) * Math.PI * 2;
                     const x = layer.scale * 16 * Math.pow(Math.sin(t), 3) * 1.1;
                     const y = -layer.scale * (14 * Math.cos(t) - 5.5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
                     span.style.left = (centerX + x - 35) + 'px';
                     span.style.top = (centerY + y) + 'px';
                     heartContainer.appendChild(span);
-                    allHeartPhrases.push(span);
-                    setTimeout(() => { span.style.opacity = layer.opacity; }, Math.random() * 2600); 
+                    allPhrases.push({el: span, layer: index, targetOpacity: layer.opacity});
+                    setTimeout(() => { span.style.opacity = layer.opacity; }, Math.random() * 2000);
                 }
             });
 
             setTimeout(() => {
-                allHeartPhrases.forEach(p => {
-                    if (Math.random() > 0.5) {
-                        p.classList.add('blink-' + p.dataset.layerIndex);
-                        p.style.animationDelay = (Math.random() * 4) + 's';
-                    }
+                allPhrases.forEach(p => {
+                    if (Math.random() > 0.5) p.el.classList.add('blink-' + p.layer);
                 });
-            }, 3500);
+            }, 3000);
 
+            // ЛОГИКА ИНТЕРАКТИВА
+            let sectors = new Set();
             let isDrawing = false;
-            let sectorsTouched = new Set();
-            const totalSectors = 12;
-            const radiusThreshold = isMobile ? 120 : 200;
-            let currentBeatCount = 0;
-
-            function onBeatEnd() {
-                currentBeatCount++;
-                if (currentBeatCount >= 10) {
-                    heartContainer.classList.remove('beating');
-                    heartContainer.removeEventListener('animationiteration', onBeatEnd);
-                    currentBeatCount = 0;
-                }
-            }
+            let isBeating = false;
 
             function triggerBeat() {
-                if (heartContainer.classList.contains('beating')) return;
-                currentBeatCount = 0;
+                if (isBeating) return;
+                isBeating = true;
                 heartContainer.classList.add('beating');
-                heartContainer.addEventListener('animationiteration', onBeatEnd);
+
+                // Ровно 10 ударов по 0.8 секунд = 8000мс
+                setTimeout(() => {
+                    heartContainer.classList.remove('beating');
+                    isBeating = false;
+                }, 8000);
             }
 
-            function checkTrace(x, y) {
-                const dx = x - centerX;
-                const dy = y - centerY;
-                const distance = Math.sqrt(dx*dx + dy*dy);
-
-                if (distance > radiusThreshold * 0.5 && distance < radiusThreshold * 1.6) {
+            function check(x, y) {
+                const dx = x - centerX, dy = y - centerY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 100 && dist < 300) {
                     const angle = Math.atan2(dy, dx);
-                    const sector = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * totalSectors);
-                    sectorsTouched.add(sector);
-
-                    if (sectorsTouched.size === totalSectors) {
-                        triggerBeat();
-                        sectorsTouched.clear();
-                    }
+                    sectors.add(Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 12));
+                    if (sectors.size === 12) { triggerBeat(); sectors.clear(); }
                 }
             }
 
-            canvas.addEventListener('mousedown', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
-            window.addEventListener('mouseup', () => { isDrawing = false; });
-            canvas.addEventListener('mousemove', (e) => { if(isDrawing) checkTrace(e.clientX, e.clientY); });
-            
-            canvas.addEventListener('touchstart', () => { if(!heartContainer.classList.contains('beating')) sectorsTouched.clear(); isDrawing = true; });
-            window.addEventListener('touchend', () => { isDrawing = false; });
-            canvas.addEventListener('touchmove', (e) => { 
-                if(isDrawing) checkTrace(e.touches[0].clientX, e.touches[0].clientY); 
-            });
+            canvas.addEventListener('mousedown', () => { isDrawing = true; sectors.clear(); });
+            window.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('mousemove', (e) => { if(isDrawing) check(e.clientX, e.clientY); });
+            canvas.addEventListener('touchstart', () => { isDrawing = true; sectors.clear(); });
+            window.addEventListener('touchend', () => isDrawing = false);
+            canvas.addEventListener('touchmove', (e) => { if(isDrawing) check(e.touches[0].clientX, e.touches[0].clientY); });
         }
 
         btn.addEventListener('click', createHeart);
