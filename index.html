@@ -76,29 +76,25 @@
             font-size: 14px;
             opacity: 0;
             z-index: 10;
-            transition: opacity 2s ease-in-out;
+            /* Изменено на 1 секунду */
+            transition: opacity 1s ease-in-out;
             pointer-events: none;
             user-select: none;
         }
 
-        /* АНИМАЦИИ МЕРЦАНИЯ ДЛЯ РАЗНЫХ СЛОЕВ */
-        /* Верхний слой: падение на 66% (остается 34%) */
         @keyframes blink-top {
             0%, 100% { filter: opacity(1); }
             50% { filter: opacity(0.34); } 
         }
-        /* Средний слой: падение на 33% (остается 67%) */
         @keyframes blink-mid {
             0%, 100% { filter: opacity(1); }
             50% { filter: opacity(0.67); } 
         }
-        /* Нижний слой: падение на 16% (остается 84%) */
         @keyframes blink-low {
             0%, 100% { filter: opacity(1); }
             50% { filter: opacity(0.84); } 
         }
 
-        /* Классы для запуска */
         .blink-0 { animation: blink-top 6s infinite ease-in-out; }
         .blink-1 { animation: blink-mid 6s infinite ease-in-out; }
         .blink-2 { animation: blink-low 6s infinite ease-in-out; }
@@ -187,8 +183,6 @@
                     span.className = 'heart-phrase';
                     span.innerText = 'ich liebe dich';
                     span.style.color = '#800020';
-                    
-                    // Сохраняем индекс слоя в атрибуте, чтобы знать какую анимацию дать
                     span.dataset.layerIndex = index;
 
                     const t = (i / layer.count) * Math.PI * 2;
@@ -210,7 +204,6 @@
             setTimeout(() => {
                 allHeartPhrases.forEach(p => {
                     if (Math.random() > 0.5) {
-                        // Присваиваем анимацию в зависимости от слоя (0, 1 или 2)
                         const idx = p.dataset.layerIndex;
                         p.classList.add('blink-' + idx);
                         p.style.animationDelay = (Math.random() * 4) + 's';
