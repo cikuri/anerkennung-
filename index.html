@@ -68,14 +68,43 @@
             transition: opacity 2s ease;
         }
 
-        /* Оставил медленную скорость для эстетики */
+        /* Надпись в углу */
+        #signature {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #800020;
+            font-size: 14px;
+            opacity: 0;
+            z-index: 10;
+            transition: opacity 2s ease-in-out;
+            pointer-events: none;
+            user-select: none;
+        }
+
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.33; }
         }
 
+        /* Добавили fadeIn для самой анимации, чтобы убрать рывки при старте */
+        @keyframes fadeInBlink {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .blinking {
             animation: blink 6s infinite ease-in-out;
+        }
+
+        @media (max-width: 600px) {
+            #signature {
+                font-size: 11px;
+                bottom: 15px;
+                right: 15px;
+                max-width: 80%;
+                text-align: right;
+            }
         }
     </style>
 </head>
@@ -84,11 +113,13 @@
     <div id="bg-phrases"></div>
     <button id="start-btn">Открыть</button>
     <div id="heart-container"></div>
+    <div id="signature">insbesondere für Sofia Mjaukowna</div>
 
     <script>
         const bgContainer = document.getElementById('bg-phrases');
         const heartContainer = document.getElementById('heart-container');
         const btn = document.getElementById('start-btn');
+        const signature = document.getElementById('signature');
 
         const compliments = [
             "Ich ertrinke in deinen Augen", 
@@ -96,7 +127,7 @@
             "du bist ein geschenk des schicksals", 
             "du bist die schönste",
             "dein lächeln ist wunderschön", 
-            "deine stimme wie ein engelsgesang"
+            "deine stimме wie ein engelsgesang"
         ];
 
         function spawnBgText(initialY = -50) {
@@ -135,6 +166,9 @@
             clearInterval(bgInterval);
             bgContainer.style.opacity = '0';
             bgContainer.style.transition = 'opacity 1.5s';
+            
+            // Показываем подпись
+            signature.style.opacity = '1';
 
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
@@ -171,15 +205,17 @@
                 }
             });
 
+            // Запускаем мерцание через 3.5 сек, когда проявление (transition) точно завершено
             setTimeout(() => {
                 allHeartPhrases.forEach(p => {
-                    // Вернул прежний шанс (примерно 35%)
                     if (Math.random() > 0.65) {
+                        // Сначала убираем transition, чтобы он не конфликтовал с animation
+                        p.style.transition = 'none'; 
                         p.classList.add('blinking');
                         p.style.animationDelay = (Math.random() * 4) + 's';
                     }
                 });
-            }, 3000);
+            }, 3500);
         }
 
         btn.addEventListener('click', createHeart);
