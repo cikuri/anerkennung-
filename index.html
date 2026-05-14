@@ -81,7 +81,7 @@
             user-select: none;
         }
 
-        /* Относительное мигание: уменьшает текущую яркость слоя до 33% */
+        /* Мягкое мигание через фильтр (от 100% до 33% текущей яркости) */
         @keyframes blinkRelative {
             0%, 100% { filter: opacity(1); }
             50% { filter: opacity(0.33); } 
@@ -161,7 +161,6 @@
             const centerY = window.innerHeight / 2;
             const isMobile = window.innerWidth < 600;
 
-            // Слои с твоими "очками яркости" (1.0, 0.66, 0.33)
             const layers = [
                 { count: 140, scale: isMobile ? 9 : 15, opacity: 1 },
                 { count: 100, scale: isMobile ? 6.5 : 11, opacity: 0.66 },
@@ -193,10 +192,10 @@
                 }
             });
 
+            // Запуск мерцания: 3.5 сек задержки, чтобы избежать конфликтов с появлением
             setTimeout(() => {
                 allHeartPhrases.forEach(p => {
                     if (Math.random() > 0.5) {
-                        // Здесь мы НЕ трогаем transition (opacity), чтобы мигание (filter) работало ПОВЕРХ
                         p.classList.add('blinking');
                         p.style.animationDelay = (Math.random() * 4) + 's';
                     }
