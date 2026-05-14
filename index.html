@@ -76,23 +76,26 @@
             font-size: 14px;
             opacity: 0;
             z-index: 10;
-            /* Изменено на 1 секунду */
             transition: opacity 1s ease-in-out;
             pointer-events: none;
             user-select: none;
         }
 
+        /* ОБНОВЛЕННЫЕ АНИМАЦИИ МЕРЦАНИЯ */
+        /* Верхний слой: потеря 66% (остается 0.34) */
         @keyframes blink-top {
             0%, 100% { filter: opacity(1); }
             50% { filter: opacity(0.34); } 
         }
+        /* Средний слой: потеря 50% (остается 0.50) */
         @keyframes blink-mid {
             0%, 100% { filter: opacity(1); }
-            50% { filter: opacity(0.67); } 
+            50% { filter: opacity(0.50); } 
         }
+        /* Нижний слой: потеря 35% (остается 0.65) */
         @keyframes blink-low {
             0%, 100% { filter: opacity(1); }
-            50% { filter: opacity(0.84); } 
+            50% { filter: opacity(0.65); } 
         }
 
         .blink-0 { animation: blink-top 6s infinite ease-in-out; }
