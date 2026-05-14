@@ -23,12 +23,12 @@
 
         .falling-text {
             position: absolute;
-            color: #800020; /* Возвращаем глубокий винный */
+            color: #800020;
             font-size: 12px;
             white-space: nowrap;
             user-select: none;
-            opacity: 0.8; /* Сделано менее прозрачным на 33% */
-            text-shadow: 0 0 5px rgba(128, 0, 32, 0.3);
+            /* Сделал тусклее на 33% от прошлого значения (было 0.8 -> стало ~0.53) */
+            opacity: 0.53; 
         }
 
         #start-btn {
@@ -65,7 +65,9 @@
             font-weight: bold;
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 1.5s ease;
+            /* Замедление сборки (проявления) на 33% */
+            transition: opacity 2s ease; 
+            text-shadow: none; /* Убрал свечение */
         }
     </style>
 </head>
@@ -83,17 +85,20 @@
         const compliments = [
             "Ich ertrinke in deinen Augen", "Ich mag dich",
             "du bist ein geschenk des schicksals", "du bist die schönste",
-            "dein lächeln ist wunderschön", "deine stimme klingt like ein engelsgesang"
+            "dein lächeln ist wunderschön", "deine stimме klingt like ein engelsgesang"
         ];
 
         function spawnBgText(initialY = -50) {
             const span = document.createElement('span');
             span.className = 'falling-text';
             span.innerText = compliments[Math.floor(Math.random() * compliments.length)];
-            span.style.left = Math.random() * 95 + 'vw';
+            
+            // Поправил распределение: теперь фразы охватывают весь экран равномерно
+            span.style.left = (Math.random() * 100) + 'vw';
+            span.style.transform = 'translateX(-50%)'; // Чтобы фразы справа не вылезали за край
             
             let top = initialY;
-            const speed = Math.random() * 0.8 + 0.4;
+            const speed = Math.random() * 0.7 + 0.3;
             bgContainer.appendChild(span);
 
             function move() {
@@ -109,7 +114,7 @@
         }
 
         // Мгновенное заполнение при старте
-        for (let i = 0; i < 65; i++) {
+        for (let i = 0; i < 70; i++) {
             spawnBgText(Math.random() * window.innerHeight);
         }
 
@@ -119,13 +124,12 @@
             btn.style.display = 'none';
             clearInterval(bgInterval);
             bgContainer.style.opacity = '0';
-            bgContainer.style.transition = 'opacity 1s';
+            bgContainer.style.transition = 'opacity 1.5s';
 
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             const isMobile = window.innerWidth < 600;
 
-            // Три слоя сердца: внешний (1.0), средний (0.67), внутренний (0.34)
             const layers = [
                 { count: 140, scale: isMobile ? 9 : 15, opacity: 1 },
                 { count: 100, scale: isMobile ? 6.5 : 11, opacity: 0.67 },
@@ -148,9 +152,10 @@
 
                     heartContainer.appendChild(span);
 
+                    // Медленное рандомное появление (на 33% дольше)
                     setTimeout(() => {
                         span.style.opacity = layer.opacity;
-                    }, Math.random() * 1500);
+                    }, Math.random() * 2600); 
                 }
             });
         }
