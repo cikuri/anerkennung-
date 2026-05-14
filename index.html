@@ -21,14 +21,14 @@
             z-index: 1;
             overflow: hidden;
             pointer-events: none;
-            transition: opacity 1.33s ease-in-out;
+            transition: opacity 1.25s ease-in-out; /* ИСЧЕЗНОВЕНИЕ ЗА 1.25С */
         }
 
         .falling-text {
             position: absolute;
-            color: #800020; /* ТОТ САМЫЙ ЦВЕТ */
+            color: #800020;
             font-size: 12px;
-            opacity: 0.27; /* ЯРКОСТЬ ВЕРНУЛ */
+            opacity: 0.39; /* ЯРКОСТЬ 0.39 */
             user-select: none;
             white-space: nowrap;
         }
@@ -70,7 +70,7 @@
             white-space: nowrap;
             opacity: 0;
             transition: opacity 2s ease;
-            color: #800020; /* ЦВЕТ СЕРДЦА */
+            color: #800020;
         }
 
         #signature {
@@ -92,7 +92,6 @@
 
         .beating { animation: heartBeat 0.8s infinite; }
 
-        /* Мерцание */
         @keyframes blink-0 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
         @keyframes blink-1 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
         @keyframes blink-2 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
@@ -136,16 +135,14 @@
             move();
         }
 
-        // Заполнение сразу
         for(let i=0; i<80; i++) spawn(Math.random() * window.innerHeight);
         let matrixInterval = setInterval(() => spawn(-50), 400);
 
         function openHeart() {
             btn.style.display = 'none';
-            // МАТРИЦА ИСЧЕЗАЕТ, НО НЕ ОСТАНАВЛИВАЕТСЯ
             clearInterval(matrixInterval);
             bg.style.opacity = '0';
-            setTimeout(() => { bg.innerHTML = ''; }, 1400);
+            setTimeout(() => { bg.innerHTML = ''; }, 1300);
 
             sig.style.opacity = '1';
             canvas.style.display = 'block';
@@ -195,7 +192,6 @@
                 active = true;
                 heartBox.classList.add('beating');
                 
-                // Ровно 10 ударов по 800мс
                 let count = 0;
                 let beatTimer = setInterval(() => {
                     count++;
