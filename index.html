@@ -68,7 +68,6 @@
             transition: opacity 2s ease;
         }
 
-        /* Надпись в углу */
         #signature {
             position: absolute;
             bottom: 20px;
@@ -82,19 +81,14 @@
             user-select: none;
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.33; }
-        }
-
-        /* Добавили fadeIn для самой анимации, чтобы убрать рывки при старте */
-        @keyframes fadeInBlink {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* Относительное мигание: уменьшает текущую яркость слоя до 33% */
+        @keyframes blinkRelative {
+            0%, 100% { filter: opacity(1); }
+            50% { filter: opacity(0.33); } 
         }
 
         .blinking {
-            animation: blink 6s infinite ease-in-out;
+            animation: blinkRelative 6s infinite ease-in-out;
         }
 
         @media (max-width: 600px) {
@@ -127,7 +121,7 @@
             "du bist ein geschenk des schicksals", 
             "du bist die schönste",
             "dein lächeln ist wunderschön", 
-            "deine stimме wie ein engelsgesang"
+            "deine stimme wie ein engelsgesang"
         ];
 
         function spawnBgText(initialY = -50) {
@@ -136,9 +130,7 @@
             span.innerText = compliments[Math.floor(Math.random() * compliments.length)];
             const xPos = Math.random() * 100;
             span.style.left = xPos + 'vw';
-            if (xPos > 50) {
-                span.style.transform = 'translateX(-100%)';
-            }
+            if (xPos > 50) span.style.transform = 'translateX(-100%)';
             let top = initialY;
             const speed = Math.random() * 0.7 + 0.3;
             bgContainer.appendChild(span);
@@ -155,10 +147,7 @@
             move();
         }
 
-        for (let i = 0; i < 75; i++) {
-            spawnBgText(Math.random() * window.innerHeight);
-        }
-
+        for (let i = 0; i < 75; i++) spawnBgText(Math.random() * window.innerHeight);
         let bgInterval = setInterval(() => spawnBgText(-50), 450);
 
         function createHeart() {
@@ -166,18 +155,17 @@
             clearInterval(bgInterval);
             bgContainer.style.opacity = '0';
             bgContainer.style.transition = 'opacity 1.5s';
-            
-            // Показываем подпись
             signature.style.opacity = '1';
 
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             const isMobile = window.innerWidth < 600;
 
+            // Слои с твоими "очками яркости" (1.0, 0.66, 0.33)
             const layers = [
                 { count: 140, scale: isMobile ? 9 : 15, opacity: 1 },
-                { count: 100, scale: isMobile ? 6.5 : 11, opacity: 0.67 },
-                { count: 70, scale: isMobile ? 4 : 7, opacity: 0.34 }
+                { count: 100, scale: isMobile ? 6.5 : 11, opacity: 0.66 },
+                { count: 70, scale: isMobile ? 4 : 7, opacity: 0.33 }
             ];
 
             let allHeartPhrases = [];
@@ -205,12 +193,10 @@
                 }
             });
 
-            // Запускаем мерцание через 3.5 сек, когда проявление (transition) точно завершено
             setTimeout(() => {
                 allHeartPhrases.forEach(p => {
-                    if (Math.random() > 0.65) {
-                        // Сначала убираем transition, чтобы он не конфликтовал с animation
-                        p.style.transition = 'none'; 
+                    if (Math.random() > 0.5) {
+                        // Здесь мы НЕ трогаем transition (opacity), чтобы мигание (filter) работало ПОВЕРХ
                         p.classList.add('blinking');
                         p.style.animationDelay = (Math.random() * 4) + 's';
                     }
