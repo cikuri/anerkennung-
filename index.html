@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Für Dich</title>
     <style>
-        /* Базовые настройки */
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000000; /* Полностью черный экран */
+            background-color: #000000;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             justify-content: center;
@@ -20,140 +19,189 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Контейнер для фраз */
+        /* Фоновые падающие фразы */
+        #background-matrix {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .matrix-phrase {
+            position: absolute;
+            color: #4a0012; /* Очень темный винный */
+            font-size: 13px;
+            white-space: nowrap;
+            opacity: 0.4;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* Контейнер сердца */
         #heart-container {
             position: absolute;
             width: 100%;
             height: 100%;
+            z-index: 5;
             pointer-events: none;
         }
 
-        .phrase {
+        .heart-phrase {
             position: absolute;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
+            color: #800020; /* Винный */
             white-space: nowrap;
-            color: #800020; /* Винный / Бордовый цвет */
             opacity: 0;
-            transition: all 2.5s cubic-bezier(0.19, 1, 0.22, 1);
-            text-shadow: 0 0 8px rgba(128, 0, 32, 0.6);
+            transition: opacity 2s ease;
+            text-shadow: 0 0 5px rgba(128, 0, 32, 0.5);
         }
 
-        /* Центральная кнопка */
+        /* Новая кнопка */
         #start-btn {
             position: relative;
-            padding: 15px 40px;
-            background-color: #1a1a1a; /* Темный фон кнопки */
-            border: 2px solid #ff00ff; /* Розовая рамка */
-            color: #ff00ff; /* Розовый текст */
+            padding: 18px 45px;
+            background-color: #4a0012;
+            border: 2px solid #800020;
+            color: white;
             font-size: 18px;
             font-family: inherit;
             text-transform: uppercase;
-            letter-spacing: 5px;
+            letter-spacing: 3px;
             cursor: pointer;
             z-index: 100;
-            transition: 0.5s;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
+            border-radius: 40px; /* Закругленные углы */
+            transition: 0.4s all;
+            box-shadow: 0 0 20px rgba(128, 0, 32, 0.4);
         }
 
         #start-btn:hover {
-            background-color: #ff00ff;
-            color: #000;
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
+            background-color: #800020;
+            box-shadow: 0 0 40px rgba(128, 0, 32, 0.8);
+            transform: scale(1.05);
         }
 
-        /* Анимация пульсации сердца */
-        @keyframes heartBeat {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .beating {
-            animation: heartBeat 1.8s infinite ease-in-out;
-        }
-
-        /* Текст внутри сердца */
         #final-text {
             position: absolute;
-            z-index: 10;
+            z-index: 15;
             color: #a52a2a;
-            font-size: 2rem;
+            font-size: 2.2rem;
             text-align: center;
             opacity: 0;
-            transition: opacity 2s ease-in;
+            transition: opacity 3s ease;
             text-shadow: 0 0 20px #800020;
             pointer-events: none;
         }
 
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        .beating { animation: pulse 2s infinite ease-in-out; }
+
         @media (max-width: 600px) {
-            .phrase { font-size: 9px; }
-            #start-btn { font-size: 16px; padding: 12px 30px; }
+            #final-text { font-size: 1.6rem; }
+            #start-btn { font-size: 14px; padding: 15px 30px; }
         }
     </style>
 </head>
 <body>
 
+    <div id="background-matrix"></div>
     <button id="start-btn">Открыть</button>
-
     <div id="heart-container"></div>
     <h1 id="final-text">ICH LIEBE DICH</h1>
 
     <script>
-        const container = document.getElementById('heart-container');
+        const matrixContainer = document.getElementById('background-matrix');
+        const heartContainer = document.getElementById('heart-container');
         const btn = document.getElementById('start-btn');
         const finalText = document.getElementById('final-text');
-        
-        const totalPhrases = 220; // Больше фраз для плотности
 
-        // Создаем фразы заранее, но прячем их
-        for (let i = 0; i < totalPhrases; i++) {
+        const phrasesList = [
+            "Ich ertrinke in deinen Augen",
+            "Ich mag dich",
+            "du bist ein geschenk des schicksals",
+            "du bist die schönste",
+            "dein lächeln ist wunderschön",
+            "deine stimme klingt wie ein engelsgesang"
+        ];
+
+        // --- ЛОГИКА МАТРИЦЫ ---
+        function createMatrixPhrase() {
             const span = document.createElement('span');
-            span.className = 'phrase';
-            span.innerText = 'ich liebe dich';
+            span.className = 'matrix-phrase';
+            span.innerText = phrasesList[Math.floor(Math.random() * phrasesList.length)];
+            span.style.left = Math.random() * 90 + 'vw';
             
-            // Начальная позиция точно за кнопкой (в центре)
-            span.style.left = '50%';
-            span.style.top = '50%';
-            span.style.transform = 'translate(-50%, -50%) scale(0)';
+            let pos = -50;
+            const speed = Math.random() * 1 + 0.5; // Медленное падение
             
-            container.appendChild(span);
+            matrixContainer.appendChild(span);
+
+            function fall() {
+                pos += speed;
+                span.style.top = pos + 'px';
+                if (pos < window.innerHeight) {
+                    requestAnimationFrame(fall);
+                } else {
+                    span.remove();
+                }
+            }
+            fall();
         }
 
-        btn.addEventListener('click', () => {
-            // Исчезновение кнопки
-            btn.style.opacity = '0';
-            btn.style.pointerEvents = 'none';
+        // Запуск дождя фраз
+        setInterval(createMatrixPhrase, 800);
 
-            const phrases = document.querySelectorAll('.phrase');
+        // --- ЛОГИКА СЕРДЦА ---
+        function generateHeart() {
+            btn.style.opacity = '0';
+            setTimeout(() => btn.style.display = 'none', 600);
+
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
-            
-            // Коэффициент размера сердца
-            const scale = window.innerWidth < 600 ? 10 : 16;
+            const scale = window.innerWidth < 600 ? 9 : 15;
 
-            phrases.forEach((p, i) => {
-                const t = (i / totalPhrases) * Math.PI * 2;
+            // Создаем контур и заполнение
+            // Увеличил количество итераций для эффекта заполнения внутри
+            for (let i = 0; i < 400; i++) {
+                const span = document.createElement('span');
+                span.className = 'heart-phrase';
+                span.innerText = 'ich liebe dich';
+
+                // Математика для распределения
+                const t = Math.random() * Math.PI * 2;
+                // Случайный множитель r от 0 до 1 для заполнения "внутри"
+                // Используем корень, чтобы распределение было равномерным
+                const r = Math.sqrt(Math.random()); 
                 
-                // Формула сердца
-                const x = scale * 16 * Math.pow(Math.sin(t), 3);
-                const y = -scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                const x = r * scale * 16 * Math.pow(Math.sin(t), 3);
+                const y = r * -scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
 
-                // Разлет фраз из центра в форму сердца
+                span.style.left = (centerX + x - 30) + 'px';
+                span.style.top = (centerY + y) + 'px';
+
+                heartContainer.appendChild(span);
+
+                // Рандомное появление "из ничего"
                 setTimeout(() => {
-                    p.style.opacity = '0.8';
-                    p.style.left = (centerX + x - 35) + 'px';
-                    p.style.top = (centerY + y) + 'px';
-                    p.style.transform = 'scale(1)';
-                }, i * 15); // Задержка создает эффект "выползания"
-            });
+                    span.style.opacity = Math.random() * 0.7 + 0.3;
+                }, Math.random() * 2500); 
+            }
 
-            // Появление финальной надписи и начало пульсации
             setTimeout(() => {
                 finalText.style.opacity = '1';
-                container.classList.add('beating');
-            }, 3500);
-        });
+                heartContainer.classList.add('beating');
+            }, 3000);
+        }
+
+        btn.addEventListener('click', generateHeart);
     </script>
 </body>
 </html>
