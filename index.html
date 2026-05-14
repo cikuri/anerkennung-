@@ -6,202 +6,167 @@
     <title>Für Dich</title>
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
             overflow: hidden;
-            background-color: #000000;
-            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            font-family: 'Courier New', monospace;
             display: flex;
             justify-content: center;
             align-items: center;
-            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Фоновые падающие фразы */
-        #background-matrix {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        /* Комплименты на фоне */
+        #bg-phrases {
+            position: absolute; width: 100%; height: 100%;
             z-index: 1;
-            overflow: hidden;
         }
 
-        .matrix-phrase {
+        .falling-text {
             position: absolute;
-            color: #4a0012; /* Очень темный винный */
-            font-size: 13px;
+            color: #500; /* Темно-красный для фона */
+            font-size: 12px;
             white-space: nowrap;
-            opacity: 0.4;
-            user-select: none;
-            pointer-events: none;
+            opacity: 0.5;
         }
 
-        /* Контейнер сердца */
+        /* Кнопка в стиле видео */
+        #start-btn {
+            position: relative;
+            padding: 15px 35px;
+            background-color: #000; /* Черная заливка */
+            border: 2px solid #800020; /* Красный контур */
+            color: #800020; /* Красный текст */
+            font-size: 16px;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            cursor: pointer;
+            z-index: 100;
+            border-radius: 40px;
+            transition: 0.3s;
+        }
+
+        #start-btn:hover {
+            box-shadow: 0 0 20px #800020;
+            color: #a00;
+        }
+
+        /* Сердце */
         #heart-container {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             z-index: 5;
             pointer-events: none;
         }
 
         .heart-phrase {
             position: absolute;
-            font-size: 10px;
+            font-size: 9px;
+            color: #800020;
             font-weight: bold;
-            color: #800020; /* Винный */
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 2s ease;
-            text-shadow: 0 0 5px rgba(128, 0, 32, 0.5);
+            transition: opacity 1.5s ease;
         }
 
-        /* Новая кнопка */
-        #start-btn {
-            position: relative;
-            padding: 18px 45px;
-            background-color: #4a0012;
-            border: 2px solid #800020;
-            color: white;
-            font-size: 18px;
-            font-family: inherit;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            cursor: pointer;
-            z-index: 100;
-            border-radius: 40px; /* Закругленные углы */
-            transition: 0.4s all;
-            box-shadow: 0 0 20px rgba(128, 0, 32, 0.4);
-        }
-
-        #start-btn:hover {
-            background-color: #800020;
-            box-shadow: 0 0 40px rgba(128, 0, 32, 0.8);
-            transform: scale(1.05);
-        }
-
-        #final-text {
-            position: absolute;
-            z-index: 15;
-            color: #a52a2a;
-            font-size: 2.2rem;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 3s ease;
-            text-shadow: 0 0 20px #800020;
-            pointer-events: none;
-        }
-
-        @keyframes pulse {
+        @keyframes beat {
             0% { transform: scale(1); }
-            50% { transform: scale(1.04); }
+            50% { transform: scale(1.07); }
             100% { transform: scale(1); }
         }
 
-        .beating { animation: pulse 2s infinite ease-in-out; }
-
-        @media (max-width: 600px) {
-            #final-text { font-size: 1.6rem; }
-            #start-btn { font-size: 14px; padding: 15px 30px; }
-        }
+        .beating { animation: beat 1.5s infinite ease-in-out; }
     </style>
 </head>
 <body>
 
-    <div id="background-matrix"></div>
+    <div id="bg-phrases"></div>
     <button id="start-btn">Открыть</button>
     <div id="heart-container"></div>
-    <h1 id="final-text">ICH LIEBE DICH</h1>
 
     <script>
-        const matrixContainer = document.getElementById('background-matrix');
+        const bgContainer = document.getElementById('bg-phrases');
         const heartContainer = document.getElementById('heart-container');
         const btn = document.getElementById('start-btn');
-        const finalText = document.getElementById('final-text');
 
-        const phrasesList = [
-            "Ich ertrinke in deinen Augen",
-            "Ich mag dich",
-            "du bist ein geschenk des schicksals",
-            "du bist die schönste",
-            "dein lächeln ist wunderschön",
-            "deine stimme klingt wie ein engelsgesang"
+        const compliments = [
+            "Ich ertrinke in deinen Augen", "Ich mag dich",
+            "du bist ein geschenk des schicksals", "du bist die schönste",
+            "dein lächeln ist wunderschön", "deine stimme klingt wie ein engelsgesang"
         ];
 
-        // --- ЛОГИКА МАТРИЦЫ ---
-        function createMatrixPhrase() {
+        // Создание падающих фраз
+        function spawnBgText() {
             const span = document.createElement('span');
-            span.className = 'matrix-phrase';
-            span.innerText = phrasesList[Math.floor(Math.random() * phrasesList.length)];
+            span.className = 'falling-text';
+            span.innerText = compliments[Math.floor(Math.random() * compliments.length)];
             span.style.left = Math.random() * 90 + 'vw';
             
-            let pos = -50;
-            const speed = Math.random() * 1 + 0.5; // Медленное падение
-            
-            matrixContainer.appendChild(span);
+            let top = -50;
+            const speed = Math.random() * 1 + 0.5;
+            bgContainer.appendChild(span);
 
-            function fall() {
-                pos += speed;
-                span.style.top = pos + 'px';
-                if (pos < window.innerHeight) {
-                    requestAnimationFrame(fall);
+            function move() {
+                top += speed;
+                span.style.top = top + 'px';
+                if (top < window.innerHeight) {
+                    requestAnimationFrame(move);
                 } else {
                     span.remove();
                 }
             }
-            fall();
+            move();
         }
 
-        // Запуск дождя фраз
-        setInterval(createMatrixPhrase, 800);
+        let bgInterval = setInterval(spawnBgText, 700);
 
-        // --- ЛОГИКА СЕРДЦА ---
-        function generateHeart() {
-            btn.style.opacity = '0';
-            setTimeout(() => btn.style.display = 'none', 600);
+        // Функция создания сердца
+        function createHeart() {
+            // Убираем кнопку и фон
+            btn.style.display = 'none';
+            clearInterval(bgInterval);
+            bgContainer.style.opacity = '0';
+            bgContainer.style.transition = 'opacity 1s';
 
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
-            const scale = window.innerWidth < 600 ? 9 : 15;
+            const isMobile = window.innerWidth < 600;
 
-            // Создаем контур и заполнение
-            // Увеличил количество итераций для эффекта заполнения внутри
-            for (let i = 0; i < 400; i++) {
-                const span = document.createElement('span');
-                span.className = 'heart-phrase';
-                span.innerText = 'ich liebe dich';
+            // Рисуем два контура (внешний и внутренний)
+            const layers = [
+                { count: 120, scale: isMobile ? 9 : 15 }, // Внешний
+                { count: 80, scale: isMobile ? 6 : 10 }   // Внутренний
+            ];
 
-                // Математика для распределения
-                const t = Math.random() * Math.PI * 2;
-                // Случайный множитель r от 0 до 1 для заполнения "внутри"
-                // Используем корень, чтобы распределение было равномерным
-                const r = Math.sqrt(Math.random()); 
-                
-                const x = r * scale * 16 * Math.pow(Math.sin(t), 3);
-                const y = r * -scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+            layers.forEach(layer => {
+                for (let i = 0; i < layer.count; i++) {
+                    const span = document.createElement('span');
+                    span.className = 'heart-phrase';
+                    span.innerText = 'ich liebe dich';
 
-                span.style.left = (centerX + x - 30) + 'px';
-                span.style.top = (centerY + y) + 'px';
+                    const t = (i / layer.count) * Math.PI * 2;
+                    const x = layer.scale * 16 * Math.pow(Math.sin(t), 3);
+                    const y = -layer.scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
 
-                heartContainer.appendChild(span);
+                    span.style.left = (centerX + x - 30) + 'px';
+                    span.style.top = (centerY + y) + 'px';
 
-                // Рандомное появление "из ничего"
-                setTimeout(() => {
-                    span.style.opacity = Math.random() * 0.7 + 0.3;
-                }, Math.random() * 2500); 
-            }
+                    heartContainer.appendChild(span);
+
+                    // Плавное рандомное появление
+                    setTimeout(() => {
+                        span.style.opacity = '1';
+                    }, Math.random() * 2000);
+                }
+            });
 
             setTimeout(() => {
-                finalText.style.opacity = '1';
                 heartContainer.classList.add('beating');
-            }, 3000);
+            }, 2000);
         }
 
-        btn.addEventListener('click', generateHeart);
+        btn.addEventListener('click', createHeart);
     </script>
 </body>
 </html>
