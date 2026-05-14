@@ -31,7 +31,7 @@
             opacity: 0.39;
             user-select: none;
             white-space: nowrap;
-            transform: translateX(-50%); /* ЦЕНТРОВКА ФРАЗ */
+            transform: translateX(-50%);
         }
 
         #start-btn {
@@ -70,7 +70,7 @@
             font-weight: bold;
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 3s ease; /* ПЛАВНОСТЬ ПРОЯВЛЕНИЯ */
+            transition: opacity 3s ease;
             color: #800020;
         }
 
@@ -124,15 +124,19 @@
             span.innerText = words[Math.floor(Math.random() * words.length)];
             span.style.left = Math.random() * 100 + 'vw';
             let top = y;
+            const speed = Math.random() * 0.8 + 0.6; // РАЗНАЯ СКОРОСТЬ ВЕРНУЛАСЬ
             span.style.top = top + 'px';
             bg.appendChild(span);
             
             function move() {
-                top += 1.3;
+                top += speed;
                 span.style.top = top + 'px';
-                if (top < window.innerHeight) {
-                    if (bg.style.opacity !== '0') requestAnimationFrame(move);
-                } else span.remove();
+                // Теперь движение не зависит от opacity, они летят пока не удалятся
+                if (top < window.innerHeight + 100) {
+                    requestAnimationFrame(move);
+                } else {
+                    span.remove();
+                }
             }
             move();
         }
@@ -144,7 +148,8 @@
             btn.style.display = 'none';
             clearInterval(matrixInterval);
             bg.style.opacity = '0';
-            setTimeout(() => { bg.innerHTML = ''; }, 1300);
+            // Удаляем контейнер только после завершения анимации исчезновения
+            setTimeout(() => { bg.style.display = 'none'; }, 1250);
 
             sig.style.opacity = '1';
             canvas.style.display = 'block';
@@ -172,7 +177,6 @@
                     span.style.top = (cy + y) + 'px';
                     heartBox.appendChild(span);
                     heartPhrases.push({el: span, l: idx});
-                    // СБОРКА 5 СЕКУНД (РАНДОМ ЗАДЕРЖКИ)
                     setTimeout(() => { span.style.opacity = l.o; }, Math.random() * 5000);
                 }
             });
