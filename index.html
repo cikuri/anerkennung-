@@ -65,10 +65,25 @@
             font-weight: bold;
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 2s ease;
+            /* Плавное проявление при сборке */
+            transition: opacity 2s ease; 
         }
 
-        /* Оставил медленную скорость для эстетики */
+        /* Новая подпись в углу */
+        #signature {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #800020; /* Тот же цвет */
+            font-size: 14px;
+            opacity: 0;
+            z-index: 10;
+            transition: opacity 2s ease-in-out;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Анимация плавного мигания (6 секунд для плавности) */
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.33; }
@@ -77,6 +92,17 @@
         .blinking {
             animation: blink 6s infinite ease-in-out;
         }
+
+        /* Адаптация подписи для мобильных */
+        @media (max-width: 600px) {
+            #signature {
+                font-size: 11px;
+                bottom: 15px;
+                right: 15px;
+                max-width: 80%; /* Чтобы текст не вылезал */
+                text-align: right;
+            }
+        }
     </style>
 </head>
 <body>
@@ -84,11 +110,13 @@
     <div id="bg-phrases"></div>
     <button id="start-btn">Открыть</button>
     <div id="heart-container"></div>
+    <div id="signature">insbesondere für Sofia Mjaukowna</div>
 
     <script>
         const bgContainer = document.getElementById('bg-phrases');
         const heartContainer = document.getElementById('heart-container');
         const btn = document.getElementById('start-btn');
+        const signature = document.getElementById('signature');
 
         const compliments = [
             "Ich ertrinke in deinen Augen", 
@@ -135,6 +163,9 @@
             clearInterval(bgInterval);
             bgContainer.style.opacity = '0';
             bgContainer.style.transition = 'opacity 1.5s';
+            
+            // Плавное появление подписи после нажатия
+            signature.style.opacity = '1';
 
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
@@ -146,14 +177,20 @@
                 { count: 70, scale: isMobile ? 4 : 7, opacity: 0.34 }
             ];
 
-            let allHeartPhrases = [];
-
             layers.forEach(layer => {
                 for (let i = 0; i < layer.count; i++) {
                     const span = document.createElement('span');
                     span.className = 'heart-phrase';
                     span.innerText = 'ich liebe dich';
                     span.style.color = '#800020';
+
+                    // --- ТЕПЕРЬ ФРАЗЫ МИГАЮТ СРАЗУ ---
+                    // Условие для мигания (примерно 35%, как было раньше)
+                    if (Math.random() > 0.65) {
+                        span.classList.add('blinking');
+                        // Случайная задержка, чтобы мигание не было синхронным
+                        span.style.animationDelay = (Math.random() * 5) + 's';
+                    }
 
                     const t = (i / layer.count) * Math.PI * 2;
                     const x = layer.scale * 16 * Math.pow(Math.sin(t), 3) * 1.1;
@@ -163,23 +200,13 @@
                     span.style.top = (centerY + y) + 'px';
 
                     heartContainer.appendChild(span);
-                    allHeartPhrases.push(span);
 
+                    // Плавное проявление частиц
                     setTimeout(() => {
                         span.style.opacity = layer.opacity;
                     }, Math.random() * 2600); 
                 }
             });
-
-            setTimeout(() => {
-                allHeartPhrases.forEach(p => {
-                    // Вернул прежний шанс (примерно 35%)
-                    if (Math.random() > 0.65) {
-                        p.classList.add('blinking');
-                        p.style.animationDelay = (Math.random() * 4) + 's';
-                    }
-                });
-            }, 3000);
         }
 
         btn.addEventListener('click', createHeart);
