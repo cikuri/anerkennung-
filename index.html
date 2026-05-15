@@ -28,7 +28,7 @@
             position: absolute;
             color: #800020;
             font-size: 12px;
-            opacity: 0.39;
+            opacity: 0.46; /* ЯРКОСТЬ 0.46 */
             user-select: none;
             white-space: nowrap;
             transform: translateX(-50%);
@@ -119,19 +119,20 @@
         const words = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste", "dein lächeln ist wunderschön"];
 
         function spawn(y = -50) {
+            if (document.hidden) return;
+
             const span = document.createElement('span');
             span.className = 'falling-text';
             span.innerText = words[Math.floor(Math.random() * words.length)];
             span.style.left = Math.random() * 100 + 'vw';
             let top = y;
-            const speed = Math.random() * 0.8 + 0.6; // РАЗНАЯ СКОРОСТЬ ВЕРНУЛАСЬ
+            const speed = Math.random() * 0.8 + 0.6;
             span.style.top = top + 'px';
             bg.appendChild(span);
             
             function move() {
                 top += speed;
                 span.style.top = top + 'px';
-                // Теперь движение не зависит от opacity, они летят пока не удалятся
                 if (top < window.innerHeight + 100) {
                     requestAnimationFrame(move);
                 } else {
@@ -148,7 +149,6 @@
             btn.style.display = 'none';
             clearInterval(matrixInterval);
             bg.style.opacity = '0';
-            // Удаляем контейнер только после завершения анимации исчезновения
             setTimeout(() => { bg.style.display = 'none'; }, 1250);
 
             sig.style.opacity = '1';
