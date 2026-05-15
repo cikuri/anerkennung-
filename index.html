@@ -11,77 +11,46 @@
             overflow: hidden;
             background-color: #000;
             font-family: 'Courier New', monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
-
         #bg-phrases {
             position: absolute; width: 100%; height: 100%;
-            z-index: 1;
-            overflow: hidden;
-            pointer-events: none;
+            z-index: 1; overflow: hidden; pointer-events: none;
             transition: opacity 1.25s ease-in-out;
         }
-
         .falling-text {
-            position: absolute;
-            color: #800020;
-            font-size: 12px;
-            opacity: 0.46; /* ЯРКОСТЬ 0.46 */
-            user-select: none;
-            white-space: nowrap;
+            position: absolute; color: #800020; font-size: 12px;
+            opacity: 0.46; user-select: none; white-space: nowrap;
             transform: translateX(-50%);
         }
-
         #start-btn {
-            position: relative;
-            padding: 15px 35px;
-            background-color: #000;
-            border: 2px solid #800020;
-            color: #800020;
-            font-size: 16px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            cursor: pointer;
-            z-index: 100;
-            border-radius: 40px;
+            position: relative; padding: 15px 35px; background-color: #000;
+            border: 2px solid #800020; color: #800020; font-size: 16px;
+            text-transform: uppercase; letter-spacing: 3px; cursor: pointer;
+            z-index: 100; border-radius: 40px; outline: none;
         }
-
         #heart-container {
-            position: absolute;
-            width: 100%; height: 100%;
-            z-index: 5;
-            pointer-events: none;
-            transform-origin: center;
+            position: absolute; width: 100%; height: 100%;
+            z-index: 5; pointer-events: none; transform-origin: center;
+            display: flex; justify-content: center; align-items: center;
         }
-
         #drawing-canvas {
-            position: absolute;
-            width: 100vw; height: 100vh;
-            z-index: 50;
-            display: none;
-            touch-action: none;
+            position: absolute; width: 100vw; height: 100vh;
+            z-index: 50; display: none; touch-action: none;
         }
-
         .heart-phrase {
-            position: absolute;
-            font-size: 9px;
-            font-weight: bold;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 3s ease;
+            position: absolute; font-size: 9px; font-weight: bold;
+            white-space: nowrap; opacity: 0; transition: opacity 3s ease;
             color: #800020;
         }
 
-        #signature {
-            position: absolute;
-            bottom: 20px; right: 20px;
-            color: #800020;
-            font-size: 14px;
-            opacity: 0;
-            z-index: 10;
-            transition: opacity 1s;
+        @keyframes blink-vibe {
+            0%, 100% { opacity: var(--base-op); }
+            50% { opacity: calc(var(--base-op) * var(--depth)); }
+        }
+        
+        .anim-blink {
+            animation: blink-vibe 6s infinite ease-in-out;
         }
 
         @keyframes heartBeat {
@@ -90,15 +59,13 @@
             28% { transform: scale(1); }
             42% { transform: scale(1.15); }
         }
-
         .beating { animation: heartBeat 0.8s infinite; }
-
-        @keyframes blink-0 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.34); } }
-        @keyframes blink-1 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.50); } }
-        @keyframes blink-2 { 0%, 100% { filter: opacity(1); } 50% { filter: opacity(0.65); } }
-        .blink-0 { animation: blink-0 6s infinite ease-in-out; }
-        .blink-1 { animation: blink-1 6s infinite ease-in-out; }
-        .blink-2 { animation: blink-2 6s infinite ease-in-out; }
+        
+        #signature {
+            position: absolute; bottom: 20px; right: 20px;
+            color: #800020; font-size: 14px; opacity: 0;
+            z-index: 10; transition: opacity 1s;
+        }
     </style>
 </head>
 <body>
@@ -116,11 +83,16 @@
         const btn = document.getElementById('start-btn');
         const sig = document.getElementById('signature');
 
-        const words = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste", "dein lächeln ist wunderschön"];
+        const words = [
+            "ich ertrinke in deinen augen", 
+            "ich mag dich", 
+            "du bist ein geschenk des schicksals", 
+            "du bist die schönste", 
+            "dein lächeln ist wunderschön"
+        ];
 
         function spawn(y = -50) {
             if (document.hidden) return;
-
             const span = document.createElement('span');
             span.className = 'falling-text';
             span.innerText = words[Math.floor(Math.random() * words.length)];
@@ -129,21 +101,19 @@
             const speed = Math.random() * 0.8 + 0.6;
             span.style.top = top + 'px';
             bg.appendChild(span);
-            
             function move() {
                 top += speed;
                 span.style.top = top + 'px';
-                if (top < window.innerHeight + 100) {
-                    requestAnimationFrame(move);
-                } else {
-                    span.remove();
-                }
+                if (top < window.innerHeight + 100) requestAnimationFrame(move);
+                else span.remove();
             }
             move();
         }
 
         for(let i=0; i<80; i++) spawn(Math.random() * window.innerHeight);
         let matrixInterval = setInterval(() => spawn(-50), 400);
+
+        let isAssembled = false;
 
         function openHeart() {
             btn.style.display = 'none';
@@ -159,73 +129,72 @@
             const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
             const mobile = window.innerWidth < 600;
             const layers = [
-                { c: 140, s: mobile ? 9 : 15, o: 1 },
-                { c: 100, s: mobile ? 6.5 : 11, o: 0.66 },
-                { c: 70, s: mobile ? 4 : 7, o: 0.33 }
+                { c: 140, s: mobile ? 9 : 15, o: 1, d: 0.34 },
+                { c: 100, s: mobile ? 6.5 : 11, o: 0.66, d: 0.5 },
+                { c: 70, s: mobile ? 4 : 7, o: 0.33, d: 0.7 }
             ];
 
             let heartPhrases = [];
-            layers.forEach((l, idx) => {
+            layers.forEach((l) => {
                 for (let i = 0; i < l.c; i++) {
                     const span = document.createElement('span');
                     span.className = 'heart-phrase';
                     span.innerText = 'ich liebe dich';
+                    
+                    span.style.setProperty('--base-op', l.o);
+                    span.style.setProperty('--depth', l.d);
+
                     const t = (i / l.c) * Math.PI * 2;
                     const x = l.s * 16 * Math.pow(Math.sin(t), 3) * 1.1;
                     const y = -l.s * (14 * Math.cos(t) - 5.5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                    
                     span.style.left = (cx + x - 35) + 'px';
                     span.style.top = (cy + y) + 'px';
+                    
                     heartBox.appendChild(span);
-                    heartPhrases.push({el: span, l: idx});
-                    setTimeout(() => { span.style.opacity = l.o; }, Math.random() * 5000);
+                    heartPhrases.push(span);
+
+                    // Сборка за 4 секунды
+                    setTimeout(() => { 
+                        span.style.opacity = l.o; 
+                    }, Math.random() * 4000);
                 }
             });
 
+            // Активация мерцания на 4.5 сек
             setTimeout(() => {
+                isAssembled = true;
                 heartPhrases.forEach(p => {
-                    if (Math.random() > 0.5) {
-                        p.el.classList.add('blink-' + Math.floor(Math.random()*3));
-                        p.el.style.animationDelay = (Math.random()*5) + 's';
+                    if (Math.random() > 0.3) {
+                        p.classList.add('anim-blink');
+                        p.style.animationDelay = (Math.random() * 6) + 's';
                     }
                 });
-            }, 6000);
+            }, 4500);
 
             let sectors = new Set();
-            let drawing = false;
             let active = false;
-
-            function doBeat() {
-                if (active) return;
-                active = true;
-                heartBox.classList.add('beating');
-                let count = 0;
-                let beatTimer = setInterval(() => {
-                    count++;
-                    if (count >= 10) {
-                        clearInterval(beatTimer);
-                        heartBox.classList.remove('beating');
-                        active = false;
-                    }
-                }, 800);
-            }
-
             function check(x, y) {
+                if (!isAssembled || active) return;
                 const dx = x - cx, dy = y - cy;
                 if (Math.sqrt(dx*dx + dy*dy) > 70) {
                     const a = Math.atan2(dy, dx);
                     sectors.add(Math.floor(((a + Math.PI) / (Math.PI * 2)) * 12));
-                    if (sectors.size === 12) { doBeat(); sectors.clear(); }
+                    if (sectors.size === 12) {
+                        active = true;
+                        heartBox.classList.add('beating');
+                        setTimeout(() => { heartBox.classList.remove('beating'); active = false; }, 8000);
+                        sectors.clear();
+                    }
                 }
             }
 
-            canvas.onmousedown = () => { if(!active) sectors.clear(); drawing = true; };
-            window.onmouseup = () => drawing = false;
-            canvas.onmousemove = (e) => { if(drawing) check(e.clientX, e.clientY); };
-            canvas.ontouchstart = () => { if(!active) sectors.clear(); drawing = true; };
-            window.ontouchend = () => drawing = false;
-            canvas.ontouchmove = (e) => { if(drawing) check(e.touches[0].clientX, e.touches[0].clientY); };
+            canvas.onmousedown = () => { if(isAssembled) sectors.clear(); canvas.drawing = true; };
+            window.onmouseup = () => canvas.drawing = false;
+            canvas.onmousemove = (e) => { if(canvas.drawing) check(e.clientX, e.clientY); };
+            canvas.ontouchstart = () => { if(isAssembled) sectors.clear(); canvas.drawing = true; };
+            canvas.ontouchmove = (e) => { if(canvas.drawing) check(e.touches[0].clientX, e.touches[0].clientY); };
         }
-
         btn.onclick = openHeart;
     </script>
 </body>
