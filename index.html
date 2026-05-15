@@ -42,6 +42,18 @@
             white-space: nowrap; opacity: 0; transition: opacity 3s ease;
             color: #800020;
         }
+        /* Стили неоновой волны */
+        .heart-wave {
+            position: absolute;
+            width: 300px; height: 300px;
+            border: 2px solid #800020;
+            opacity: 0.5; /* В 2 раза тусклее */
+            box-shadow: 0 0 15px #800020;
+            pointer-events: none;
+            z-index: 4;
+            clip-path: path("M150,45 C110,-20 20,-20 20,70 C20,130 150,230 150,265 C150,230 280,130 280,70 C280,-20 190,-20 150,45 Z");
+            background: transparent;
+        }
         #signature {
             position: absolute; bottom: 20px; right: 20px;
             color: #800020; font-size: 14px; opacity: 0;
@@ -82,29 +94,10 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        function playStartSwoosh() {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(40, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.25);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 1.25);
-        }
-
-        function playAmbient() {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(55, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.25);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 1.25);
-        }
-
+        // МЯГКИЙ НЕЖНЫЙ ЗВУК СБОРКИ
         function playSparkle() {
             let start = audioCtx.currentTime;
+            const chords = [261.63, 329.63, 392.00, 523.25]; // До-мажор септаккорд
             const interval = setInterval(() => {
                 let now = audioCtx.currentTime;
                 let elapsed = now - start;
@@ -113,45 +106,40 @@
 
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                // Мягкие гармоничные частоты (имитация колокольчиков)
-                osc.frequency.setValueAtTime(300 + Math.random() * 300, now);
+                osc.type = 'triangle'; // Более мягкая волна чем sine
+                osc.frequency.setValueAtTime(chords[Math.floor(Math.random()*chords.length)], now);
                 
                 gain.gain.setValueAtTime(0, now);
-                // Громкость плавно растет к финалу сборки
-                let maxG = 0.005 + (0.015 * progress); 
-                gain.gain.linearRampToValueAtTime(maxG, now + 0.2);
-                gain.gain.linearRampToValueAtTime(0, now + 1.0);
+                gain.gain.linearRampToValueAtTime(0.02 * progress, now + 0.4);
+                gain.gain.linearRampToValueAtTime(0, now + 1.2);
                 
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(now + 1.1);
-            }, 500);
+                osc.start(); osc.stop(now + 1.3);
+            }, 400);
             setTimeout(() => clearInterval(interval), 5000);
         }
 
         function playHeartBeat() {
             const now = audioCtx.currentTime;
-            // Удар 1 (ТУ) - Глубокий бас точно в момент расширения
+            // Удар 1
             const osc1 = audioCtx.createOscillator();
             const g1 = audioCtx.createGain();
             osc1.frequency.setValueAtTime(50, now);
             osc1.frequency.exponentialRampToValueAtTime(0.01, now + 0.5);
-            g1.gain.setValueAtTime(0.5, now);
+            g1.gain.setValueAtTime(0.4, now);
             g1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
             osc1.connect(g1); g1.connect(audioCtx.destination);
             osc1.start(); osc1.stop(now + 0.5);
 
-            // Удар 2 (ДУМ) - Вторая фаза толчка
-            setTimeout(() => {
-                const osc2 = audioCtx.createOscillator();
-                const g2 = audioCtx.createGain();
-                osc2.frequency.setValueAtTime(35, audioCtx.currentTime);
-                osc2.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                g2.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                g2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc2.connect(g2); g2.connect(audioCtx.destination);
-                osc2.start(); osc2.stop(audioCtx.currentTime + 0.4);
-            }, 150);
+            // Удар 2 (чуть тише)
+            const osc2 = audioCtx.createOscillator();
+            const g2 = audioCtx.createGain();
+            osc2.frequency.setValueAtTime(40, now + 0.15);
+            osc2.frequency.exponentialRampToValueAtTime(0.01, now + 0.55);
+            g2.gain.setValueAtTime(0.2, now + 0.15);
+            g2.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+            osc2.connect(g2); g2.connect(audioCtx.destination);
+            osc2.start(now + 0.15); osc2.stop(now + 0.55);
         }
 
         const words = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste", "dein lächeln ist wunderschön"];
@@ -176,11 +164,35 @@
         for(let i=0; i<80; i++) spawn(Math.random() * window.innerHeight);
         let matrixInterval = setInterval(() => spawn(-50), 400);
 
+        // Функция волны
+        function triggerWave() {
+            const wave = document.createElement('div');
+            wave.className = 'heart-wave';
+            document.body.appendChild(wave);
+            
+            let scale = 1;
+            let opacity = 0.5;
+            const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+            wave.style.left = (cx - 150) + 'px';
+            wave.style.top = (cy - 165) + 'px';
+
+            const waveInterval = setInterval(() => {
+                scale += 0.05;
+                opacity -= 0.01; // Тускнеет каждые 10мс на 1%
+                wave.style.transform = `scale(${scale})`;
+                wave.style.opacity = opacity;
+                if (opacity <= 0) {
+                    clearInterval(waveInterval);
+                    wave.remove();
+                }
+            }, 10);
+        }
+
+        let isAssembled = false; // Блокировка
+
         function openHeart() {
             initAudio();
-            playStartSwoosh();
-            playAmbient();
-            setTimeout(playSparkle, 1000);
+            playSparkle();
 
             btn.style.display = 'none';
             clearInterval(matrixInterval);
@@ -217,24 +229,27 @@
                 }
             });
 
+            // Когда сердце собралось
             setTimeout(() => {
+                isAssembled = true;
+                triggerWave(); // Запуск волны
                 heartPhrases.forEach(p => {
                     if (Math.random() > 0.5) {
                         p.el.classList.add('blink-' + Math.floor(Math.random()*3));
                         p.el.style.animationDelay = (Math.random()*5) + 's';
                     }
                 });
-            }, 6000);
+            }, 5500);
 
             let sectors = new Set();
             let active = false;
             function doBeat() {
-                if (active) return;
+                if (active || !isAssembled) return; // Проверка блокировки
                 active = true;
                 heartBox.classList.add('beating');
                 let count = 0;
                 let beatTimer = setInterval(() => {
-                    playHeartBeat(); // СТРОГАЯ СИНХРОНИЗАЦИЯ
+                    playHeartBeat();
                     count++;
                     if (count >= 10) {
                         clearInterval(beatTimer);
@@ -245,6 +260,7 @@
             }
 
             function check(x, y) {
+                if (!isAssembled) return; // Не проверяем сектора пока не собрано
                 const dx = x - cx, dy = y - cy;
                 if (Math.sqrt(dx*dx + dy*dy) > 70) {
                     const a = Math.atan2(dy, dx);
@@ -253,10 +269,10 @@
                 }
             }
 
-            canvas.onmousedown = () => { if(!active) sectors.clear(); canvas.drawing = true; };
+            canvas.onmousedown = () => { if(!active && isAssembled) sectors.clear(); canvas.drawing = true; };
             window.onmouseup = () => canvas.drawing = false;
             canvas.onmousemove = (e) => { if(canvas.drawing) check(e.clientX, e.clientY); };
-            canvas.ontouchstart = () => { if(!active) sectors.clear(); canvas.drawing = true; };
+            canvas.ontouchstart = () => { if(!active && isAssembled) sectors.clear(); canvas.drawing = true; };
             window.ontouchend = () => canvas.drawing = false;
             canvas.ontouchmove = (e) => { if(canvas.drawing) check(e.touches[0].clientX, e.touches[0].clientY); };
         }
