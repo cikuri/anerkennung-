@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anerkennung</title>
+    <title>Für Dich</title>
     <style>
         body, html {
             margin: 0; padding: 0;
@@ -48,6 +48,16 @@
             color: #800020; font-size: 14px; opacity: 0;
             z-index: 10; transition: opacity 1s;
         }
+        
+        /* Идеальное мерцание: 3 типа затухания */
+        @keyframes blink-0 { 0%, 100% { opacity: 1; } 50% { opacity: 0.34; } }
+        @keyframes blink-1 { 0%, 100% { opacity: 1; } 50% { opacity: 0.50; } }
+        @keyframes blink-2 { 0%, 100% { opacity: 1; } 50% { opacity: 0.65; } }
+        
+        .blink-0 { animation: blink-0 6s infinite ease-in-out; }
+        .blink-1 { animation: blink-1 6s infinite ease-in-out; }
+        .blink-2 { animation: blink-2 6s infinite ease-in-out; }
+
         @keyframes heartBeat {
             0%, 100% { transform: scale(1); }
             14% { transform: scale(1.1); }
@@ -123,6 +133,7 @@
                 { c: 70, s: mobile ? 4 : 7, o: 0.33 }
             ];
 
+            let heartPhrases = [];
             layers.forEach((l, idx) => {
                 for (let i = 0; i < l.c; i++) {
                     const span = document.createElement('span');
@@ -134,12 +145,20 @@
                     span.style.left = (cx + x - 35) + 'px';
                     span.style.top = (cy + y) + 'px';
                     heartBox.appendChild(span);
+                    heartPhrases.push(span);
                     setTimeout(() => { span.style.opacity = l.o; }, Math.random() * 5000);
                 }
             });
 
             setTimeout(() => {
                 isAssembled = true;
+                heartPhrases.forEach(p => {
+                    // Рандомно вешаем один из 3 типов мерцания с разной задержкой
+                    if (Math.random() > 0.4) {
+                        p.classList.add('blink-' + Math.floor(Math.random() * 3));
+                        p.style.animationDelay = (Math.random() * 5) + 's';
+                    }
+                });
             }, 5500);
 
             let sectors = new Set();
