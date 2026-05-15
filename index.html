@@ -42,12 +42,11 @@
             white-space: nowrap; opacity: 0; transition: opacity 3s ease;
             color: #800020;
         }
-        /* Стили неоновой волны */
         .heart-wave {
             position: absolute;
             width: 300px; height: 300px;
             border: 2px solid #800020;
-            opacity: 0.5; /* В 2 раза тусклее */
+            opacity: 0.5; /* 50% яркости от верхнего слоя */
             box-shadow: 0 0 15px #800020;
             pointer-events: none;
             z-index: 4;
@@ -90,59 +89,38 @@
         const sig = document.getElementById('signature');
 
         let audioCtx;
-        function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let waveSoundBuffer;
+
+        // Предзагрузка твоего файла
+        async function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                try {
+                    const response = await fetch('http://googleusercontent.com/file_content/0');
+                    const arrayBuffer = await response.arrayBuffer();
+                    waveSoundBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                } catch (e) {
+                    console.error("Ошибка загрузки звука:", e);
+                }
+            }
         }
 
-        // МЯГКИЙ НЕЖНЫЙ ЗВУК СБОРКИ
-        function playSparkle() {
-            let start = audioCtx.currentTime;
-            const chords = [261.63, 329.63, 392.00, 523.25]; // До-мажор септаккорд
-            const interval = setInterval(() => {
-                let now = audioCtx.currentTime;
-                let elapsed = now - start;
-                let progress = elapsed / 5;
-                if (progress > 1) progress = 1;
-
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle'; // Более мягкая волна чем sine
-                osc.frequency.setValueAtTime(chords[Math.floor(Math.random()*chords.length)], now);
-                
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.02 * progress, now + 0.4);
-                gain.gain.linearRampToValueAtTime(0, now + 1.2);
-                
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(now + 1.3);
-            }, 400);
-            setTimeout(() => clearInterval(interval), 5000);
+        function playWaveSound() {
+            if (!waveSoundBuffer) return;
+            const source = audioCtx.createBufferSource();
+            const gain = audioCtx.createGain();
+            source.buffer = waveSoundBuffer;
+            
+            // Громкость тише на 66% (остаток 34%)
+            gain.gain.setValueAtTime(0.34, audioCtx.currentTime);
+            
+            source.connect(gain);
+            gain.connect(audioCtx.destination);
+            source.start(0);
         }
 
-        function playHeartBeat() {
-            const now = audioCtx.currentTime;
-            // Удар 1
-            const osc1 = audioCtx.createOscillator();
-            const g1 = audioCtx.createGain();
-            osc1.frequency.setValueAtTime(50, now);
-            osc1.frequency.exponentialRampToValueAtTime(0.01, now + 0.5);
-            g1.gain.setValueAtTime(0.4, now);
-            g1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            osc1.connect(g1); g1.connect(audioCtx.destination);
-            osc1.start(); osc1.stop(now + 0.5);
+        const words = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste", "dein lächeлни ist wunderschön"];
 
-            // Удар 2 (чуть тише)
-            const osc2 = audioCtx.createOscillator();
-            const g2 = audioCtx.createGain();
-            osc2.frequency.setValueAtTime(40, now + 0.15);
-            osc2.frequency.exponentialRampToValueAtTime(0.01, now + 0.55);
-            g2.gain.setValueAtTime(0.2, now + 0.15);
-            g2.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
-            osc2.connect(g2); g2.connect(audioCtx.destination);
-            osc2.start(now + 0.15); osc2.stop(now + 0.55);
-        }
-
-        const words = ["Ich ertrinke in deinen Augen", "Ich mag dich", "du bist ein geschenk des schicksals", "du bist die schönste", "dein lächeln ist wunderschön"];
         function spawn(y = -50) {
             if (document.hidden) return;
             const span = document.createElement('span');
@@ -164,36 +142,40 @@
         for(let i=0; i<80; i++) spawn(Math.random() * window.innerHeight);
         let matrixInterval = setInterval(() => spawn(-50), 400);
 
-        // Функция волны
         function triggerWave() {
+            playWaveSound(); 
             const wave = document.createElement('div');
             wave.className = 'heart-wave';
             document.body.appendChild(wave);
             
             let scale = 1;
-            let opacity = 0.5;
+            let opacity = 0.5; // 50% яркости
             const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
             wave.style.left = (cx - 150) + 'px';
             wave.style.top = (cy - 165) + 'px';
 
-            const waveInterval = setInterval(() => {
-                scale += 0.05;
-                opacity -= 0.01; // Тускнеет каждые 10мс на 1%
+            // Скрыться за 1.33 секунды (быстрое расширение)
+            const moveInterval = setInterval(() => {
+                scale += 0.08; 
                 wave.style.transform = `scale(${scale})`;
-                wave.style.opacity = opacity;
                 if (opacity <= 0) {
-                    clearInterval(waveInterval);
+                    clearInterval(moveInterval);
                     wave.remove();
                 }
-            }, 10);
+            }, 16);
+
+            // Тускнеть на 7.5% каждые 100мс
+            const fadeInterval = setInterval(() => {
+                opacity -= 0.075;
+                wave.style.opacity = Math.max(0, opacity);
+                if (opacity <= 0) clearInterval(fadeInterval);
+            }, 100);
         }
 
-        let isAssembled = false; // Блокировка
+        let isAssembled = false;
 
-        function openHeart() {
-            initAudio();
-            playSparkle();
-
+        async function openHeart() {
+            await initAudio(); 
             btn.style.display = 'none';
             clearInterval(matrixInterval);
             bg.style.opacity = '0';
@@ -229,10 +211,9 @@
                 }
             });
 
-            // Когда сердце собралось
             setTimeout(() => {
                 isAssembled = true;
-                triggerWave(); // Запуск волны
+                triggerWave(); 
                 heartPhrases.forEach(p => {
                     if (Math.random() > 0.5) {
                         p.el.classList.add('blink-' + Math.floor(Math.random()*3));
@@ -244,12 +225,11 @@
             let sectors = new Set();
             let active = false;
             function doBeat() {
-                if (active || !isAssembled) return; // Проверка блокировки
+                if (active || !isAssembled) return;
                 active = true;
                 heartBox.classList.add('beating');
                 let count = 0;
                 let beatTimer = setInterval(() => {
-                    playHeartBeat();
                     count++;
                     if (count >= 10) {
                         clearInterval(beatTimer);
@@ -260,7 +240,7 @@
             }
 
             function check(x, y) {
-                if (!isAssembled) return; // Не проверяем сектора пока не собрано
+                if (!isAssembled) return;
                 const dx = x - cx, dy = y - cy;
                 if (Math.sqrt(dx*dx + dy*dy) > 70) {
                     const a = Math.atan2(dy, dx);
