@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Für Dich</title>
+    <title>anerkennung</title>
     <style>
         body, html {
             margin: 0; padding: 0;
@@ -43,19 +43,6 @@
             white-space: nowrap; opacity: 0; transition: opacity 3s ease;
             color: #800020;
         }
-        /* Улучшенные стили волны */
-        .heart-wave {
-            position: absolute;
-            width: 300px; height: 300px;
-            border: 3px solid #800020;
-            opacity: 0.5;
-            box-shadow: 0 0 20px #800020;
-            pointer-events: none;
-            z-index: 10; 
-            clip-path: path("M150,45 C110,-20 20,-20 20,70 C20,130 150,230 150,265 C150,230 280,130 280,70 C280,-20 190,-20 150,45 Z");
-            background: transparent;
-            transform-origin: center center;
-        }
         #signature {
             position: absolute; bottom: 20px; right: 20px;
             color: #800020; font-size: 14px; opacity: 0;
@@ -85,9 +72,6 @@
         const btn = document.getElementById('start-btn');
         const sig = document.getElementById('signature');
 
-        let audioCtx;
-        let waveSoundBuffer;
-
         const words = [
             "ich ertrinke in deinen augen", 
             "ich mag dich", 
@@ -95,64 +79,6 @@
             "du bist die schönste", 
             "dein lächeln ist wunderschön"
         ];
-
-        async function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                try {
-                    const response = await fetch('yodguard-healing-magic-4-378668.mp3');
-                    const arrayBuffer = await response.arrayBuffer();
-                    waveSoundBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                } catch (e) { console.log("Audio load failed"); }
-            }
-        }
-
-        function playWaveSound() {
-            if (waveSoundBuffer && audioCtx) {
-                const source = audioCtx.createBufferSource();
-                const gain = audioCtx.createGain();
-                source.buffer = waveSoundBuffer;
-                gain.gain.setValueAtTime(0.34, audioCtx.currentTime);
-                source.connect(gain);
-                gain.connect(audioCtx.destination);
-                source.start(0);
-            }
-        }
-
-        function triggerWave() {
-            playWaveSound(); 
-            const wave = document.createElement('div');
-            wave.className = 'heart-wave';
-            heartBox.appendChild(wave); // Теперь внутри контейнера сердца
-            
-            let scale = 0.5;
-            let opacity = 0.5;
-            
-            // Волна должна скрыться за 1.33с
-            const startTime = Date.now();
-            const duration = 1330; 
-
-            const animate = () => {
-                const elapsed = Date.now() - startTime;
-                const progress = elapsed / duration;
-
-                if (progress < 1) {
-                    scale = 0.5 + (progress * 5); // Быстрое расширение
-                    wave.style.transform = `scale(${scale})`;
-                    requestAnimationFrame(animate);
-                } else {
-                    wave.remove();
-                }
-            };
-
-            const fadeInterval = setInterval(() => {
-                opacity -= 0.075; // 7.5% каждые 100мс
-                wave.style.opacity = Math.max(0, opacity);
-                if (opacity <= 0) clearInterval(fadeInterval);
-            }, 100);
-
-            requestAnimationFrame(animate);
-        }
 
         function spawn(y = -50) {
             if (document.hidden) return;
@@ -178,8 +104,7 @@
 
         let isAssembled = false;
 
-        async function openHeart() {
-            await initAudio();
+        function openHeart() {
             btn.style.display = 'none';
             clearInterval(matrixInterval);
             bg.style.opacity = '0';
@@ -215,7 +140,6 @@
 
             setTimeout(() => {
                 isAssembled = true;
-                triggerWave(); 
             }, 5500);
 
             let sectors = new Set();
