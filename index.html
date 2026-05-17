@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Für Dich</title>
+    <title>anerkennung</title>
     <style>
         body, html {
             margin: 0; padding: 0;
@@ -88,7 +88,8 @@
             "ich mag dich", 
             "du bist ein geschenk des schicksals", 
             "du bist die schönste", 
-            "dein lächeln ist wunderschön"
+            "dein lächeln ist wunderschön",
+            "hdgdl"
         ];
 
         function spawn(y = -50) {
@@ -154,14 +155,12 @@
                     heartBox.appendChild(span);
                     heartPhrases.push(span);
 
-                    // Сборка за 4 секунды
                     setTimeout(() => { 
                         span.style.opacity = l.o; 
                     }, Math.random() * 4000);
                 }
             });
 
-            // Активация мерцания на 4.5 сек
             setTimeout(() => {
                 isAssembled = true;
                 heartPhrases.forEach(p => {
