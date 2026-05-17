@@ -88,15 +88,22 @@
             "ich mag dich", 
             "du bist ein geschenk des schicksals", 
             "du bist die schönste", 
-            "dein lächeln ist wunderschön",
-            "hdgdl"
+            "dein lächeln ist wunderschön"
         ];
 
         function spawn(y = -50) {
             if (document.hidden) return;
             const span = document.createElement('span');
             span.className = 'falling-text';
-            span.innerText = words[Math.floor(Math.random() * words.length)];
+            
+            // Логика шансов: 5% на hdgdl, 95% на остальные (19% каждая)
+            const rnd = Math.random();
+            if (rnd < 0.05) {
+                span.innerText = "hdgdl";
+            } else {
+                span.innerText = words[Math.floor(Math.random() * words.length)];
+            }
+
             span.style.left = Math.random() * 100 + 'vw';
             let top = y;
             const speed = Math.random() * 0.8 + 0.6;
